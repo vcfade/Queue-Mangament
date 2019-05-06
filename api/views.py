@@ -4,28 +4,39 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 from api.queue_datastructure import Queue
+from api.mensajes import send_message 
 import json
 
-# initialize a 'Doe' family
-queue = Queue(mode='FIFO')
 
+queueF = Queue('FIFO')
+queueL = Queue('LIFO')
 """
 The MembersView will contain the logic on how to:
  GET, POST, PUT or delete family members
 """
+
+
 class QueueView(APIView):
     def get(self, request):
-        # fill this method and update the return
-        result = None
-        return Response(result, status=status.HTTP_200_OK)
+
+        next = queueF.dequeue()
+        result = str(next) + " , eres el siguiente en la lista"
+        mynumber= "+56968422617"
+        send_message(mynumber, result)
+        return Response(json.dumps(result), status=status.HTTP_200_OK)
 
     def post(self, request):
-        # add a new member to the queue
-        result = None
-        return Response(result, status=status.HTTP_200_OK)
+       
+            espera = queueF.size() - 2
+            queueF.enqueue(json.loads(request.body)['name'])
+            msg = "Ha sido agregado exitosamente a la cola! Su espera es de " + str(espera) + " persona(s)."
+            mynumber= "+56968422617"
+            send_message(mynumber, msg)
+            result = msg
+            return Response(json.dumps(result), status=status.HTTP_200_OK)
 
 class QueueAllView(APIView):
     def get(self, request):
-        # respond a json with all the queue items
-        result = None
-        return Response(result, status=status.HTTP_200_OK)
+
+        result = queueF.get_all()
+        return Response(json.dumps(result), status=status.HTTP_200_OK)
